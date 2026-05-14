@@ -1,0 +1,33 @@
+import { useEffect, useState } from "react";
+import { getHabits, Habit } from "./api/habitsApi";
+
+function App() {
+  const [habits, setHabits] = useState<Habit[]>([]);
+
+  useEffect(() => {
+    loadHabits();
+  }, []);
+
+  async function loadHabits() {
+    const data = await getHabits();
+    setHabits(data);
+  }
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h1>Habit Tracker</h1>
+
+      <button onClick={loadHabits}>Refresh</button>
+
+      <ul>
+        {habits.map((habit) => (
+          <li key={habit.id}>
+            <b>{habit.name}</b> — {habit.description}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default App;
