@@ -32,5 +32,16 @@ namespace HabitTrackerAPI.Controllers
 
             return CreatedAtAction(nameof(GetHabits), new { id = habit.Id }, habit);
         }
+		[HttpDelete("{id}")]
+		public async Task<IActionResult> DeleteHabit(int id)
+		{
+			var habit = await _context.Habits.FindAsync(id);
+			if (habit == null) return NotFound();
+
+			_context.Habits.Remove(habit);
+			await _context.SaveChangesAsync();
+
+			return NoContent();
+		}
     }
 }

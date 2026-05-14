@@ -1,0 +1,84 @@
+# 🧠 Habit Tracker (Full-Stack App)
+
+A simple full-stack habit tracking application built with **React (TypeScript)** frontend and **.NET 8 Web API** backend using **SQLite** for persistence.
+
+---
+
+## 🚀 Features
+
+- Create habits
+- View all habits
+- Persistent storage with SQLite
+- REST API built with ASP.NET Core
+- Frontend built with React + TypeScript
+- Full client-server integration
+
+---
+
+## 🧱 Tech Stack
+
+### Frontend
+- React
+- TypeScript
+- Vite
+- Fetch API
+
+### Backend
+- ASP.NET Core Web API (.NET 8)
+- Entity Framework Core
+- SQLite
+
+---
+
+## 📸 Screenshots
+
+*(Add screenshots here later)*
+
+Example:
+- Main UI showing habit list
+- Swagger API testing page
+
+---
+
+## ⚙️ Project Structure
+HabitTracker/
+├── habittracker-frontend/ # React frontend
+└── HabitTrackerAPI/ # .NET backend
+---
+
+## 🔧 Setup Instructions
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/YOUR_USERNAME/habit-tracker.git
+cd habit-tracker```
+
+### 2. Run Backend (.NET API)
+```bash
+cd HabitTrackerAPI
+dotnet restore
+dotnet run```
+Backend runs at:
+```http://localhost:5016 (or similar)```
+Check if this matches in habittracker-frontend/src/api/habitsApi.ts otherwise replace the numbers after the : with the ones displayed on the terminal when running the backend.
+
+### 3. Run Frontend (React)
+```bash
+cd habbittracker-frontend
+npm install
+npm run dev```
+Frontend runs at:
+```https://localhost:5173```
+
+### API Endpoints
+Habits
+- GET /api/habits → Get all habits
+- POST /api/habits → Create a new habit
+
+### What I learned
+- Building a REST API with ASP.NET Core
+- Connecting frontend to backend
+- Using Entity Framework Core with SQLite
+- Handling CORS in full-stack apps
+- Managing state in React
