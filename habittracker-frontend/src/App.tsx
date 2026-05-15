@@ -7,6 +7,7 @@ type Habit = {
   description?: string;
   streak: number;
   createdAt: string;
+  category: string;
 };
 
 const BASE_URL = "http://localhost:5016";
@@ -14,6 +15,7 @@ const BASE_URL = "http://localhost:5016";
 function App() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [name, setName] = useState("");
+  const [category, setCategory] = useState("General");
 
   useEffect(() => {
     loadHabits();
@@ -37,6 +39,7 @@ function App() {
         name,
         description: "",
         streak: 0,
+        category,
       }),
     });
 
@@ -69,6 +72,21 @@ function App() {
             width: "250px",
           }}
         />
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          style={{
+            padding: "10px",
+            borderRadius: "8px",
+            marginRight: "10px",
+          }}
+        >
+          <option value="General">General</option>
+          <option value="Fitness">Fitness</option>
+          <option value="Study">Study</option>
+          <option value="Health">Health</option>
+          <option value="Productivity">Productivity</option>
+        </select>
 
         <button
           onClick={addHabit}
@@ -102,6 +120,7 @@ function App() {
             <h2>{habit.name}</h2>
 
             <p>🔥 Streak: {habit.streak}</p>
+            <p>📂 Category: {habit.category}</p>
 
             <div style={{ display: "flex", gap: "10px" }}>
               <button

@@ -11,9 +11,11 @@ namespace HabitTrackerAPI.Models
         public int Streak { get; set; } = 0;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-		
-		public bool CompletedToday { get; set; }
 
-		public DateTime? LastCompletedDate { get; set; }
+    		public bool CompletedToday { get; set; }
+
+    		public DateTime? LastCompletedDate { get; set; }
+
+        public string Category { get; set; } = "General";
     }
 }
