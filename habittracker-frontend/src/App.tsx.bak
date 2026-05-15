@@ -60,11 +60,35 @@ function App() {
       <button onClick={loadHabits}>Refresh</button>
 
       <ul>
-        {habits.map((h) => (
-          <li key={h.id}>
-            <b>{h.name}</b>
-          </li>
-        ))}
+		{habits.map((habit) => (
+			<li key={habit.id}>
+			  <b>{habit.name}</b>
+
+			  <button
+				onClick={async () => {
+				  await fetch(`http://localhost:5016/api/habits/${habit.id}`, {
+					method: "DELETE",
+				  });
+				  loadHabits();
+				}}
+				style={{ marginLeft: "10px" }}
+			  >
+				Delete
+			  </button>
+			  <button
+  onClick={async () => {
+    await fetch(`http://localhost:5016/api/habits/${habit.id}/complete`, {
+      method: "PUT",
+    });
+
+    loadHabits();
+  }}
+  style={{ marginLeft: "10px" }}
+>
+  Complete
+</button>
+			</li>
+		  ))}
       </ul>
     </div>
   );

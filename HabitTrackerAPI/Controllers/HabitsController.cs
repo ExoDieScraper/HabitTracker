@@ -43,5 +43,42 @@ namespace HabitTrackerAPI.Controllers
 
 			return NoContent();
 		}
+		
+		[HttpPut("{id}/complete")]
+		public async Task<IActionResult> CompleteHabit(int id)
+		{
+			var habit = await _context.Habits.FindAsync(id);
+
+			if (habit == null)
+			{
+				return NotFound();
+			}
+
+			var today = DateTime.UtcNow.Date;
+
+			// Already completed today
+			if (habit.LastCompletedDate?.Date == today)
+			{
+				return BadRequest("Habit already completed today.");
+			}
+
+			// If completed yesterday → continue streak
+			if (habit.LastCompletedDate?.Date == today.AddDays(-1))
+			{
+				habit.Streak++;
+			}
+			else
+			{
+				// Missed a day → reset streak
+				habit.Streak = 1;
+			}
+
+			habit.CompletedToday = true;
+			habit.LastCompletedDate = today;
+
+			await _context.SaveChangesAsync();
+
+			return Ok(habit);
+		}
     }
 }
