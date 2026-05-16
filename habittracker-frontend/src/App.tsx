@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getHabits } from "./api/habitsApi";
+import {BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,} from "recharts";
 
 type Habit = {
   id: number;
@@ -8,6 +9,7 @@ type Habit = {
   streak: number;
   createdAt: string;
   category: string;
+  completedToday: boolean;
 };
 
 const BASE_URL = "http://localhost:5016";
@@ -16,6 +18,21 @@ function App() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [name, setName] = useState("");
   const [category, setCategory] = useState("General");
+  const totalHabits = habits.length;
+
+  const completedToday = habits.filter(
+    (h) => h.completedToday
+  ).length;
+
+  const bestStreak =
+    habits.length > 0
+      ? Math.max(...habits.map((h) => h.streak))
+      : 0;
+
+  const chartData = habits.map((habit) => ({
+    name: habit.name,
+    streak: habit.streak,
+  }))
 
   useEffect(() => {
     loadHabits();
@@ -58,6 +75,74 @@ function App() {
       }}
     >
       <h1 style={{ marginBottom: "30px" }}>🔥 Habit Tracker</h1>
+      <div
+        style={{
+          display: "flex",
+          gap: "20px",
+          marginBottom: "30px",
+          flexWrap: "wrap",
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: "#1e1e1e",
+            padding: "20px",
+            borderRadius: "12px",
+            minWidth: "180px",
+          }}
+        >
+          <h3>Total Habits</h3>
+          <p style={{ fontSize: "24px" }}>{totalHabits}</p>
+        </div>
+
+        <div
+          style={{
+            backgroundColor: "#1e1e1e",
+            padding: "20px",
+            borderRadius: "12px",
+            minWidth: "180px",
+          }}
+        >
+          <h3>Completed Today</h3>
+          <p style={{ fontSize: "24px" }}>{completedToday}</p>
+        </div>
+
+        <div
+          style={{
+            backgroundColor: "#1e1e1e",
+            padding: "20px",
+            borderRadius: "12px",
+            minWidth: "180px",
+          }}
+        >
+          <h3>Best Streak</h3>
+          <p style={{ fontSize: "24px" }}>🔥 {bestStreak}</p>
+        </div>
+      </div>
+
+      <div
+        style={{
+          backgroundColor: "#1e1e1e",
+          padding: "20px",
+          borderRadius: "12px",
+          marginBottom: "30px",
+          width: "100%",
+          maxWidth: "800px",
+          height: "350px",
+        }}
+      >
+        <h2>📊 Habit Streak Analytics</h2>
+
+        <ResponsiveContainer width="100%" height="90%">
+          <BarChart data={chartData}>
+            <XAxis dataKey="name" stroke="#ffffff" />
+            <YAxis stroke="#ffffff" />
+            <Tooltip />
+
+            <Bar dataKey="streak" fill="#8884d8" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
 
       <div style={{ marginBottom: "30px" }}>
         <input
