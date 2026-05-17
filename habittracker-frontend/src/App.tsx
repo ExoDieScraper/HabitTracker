@@ -22,6 +22,9 @@ function App() {
   const [filterCategory, setFilterCategory] = useState("All");
   const [sortOrder, setSortOrder] = useState("desc");
   const totalHabits = habits.length;
+  const [token, setToken] = useState<string | null>(null);
+  const [loginUsername , setLoginUsername] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
 
   const completedToday = habits.filter(
     (h) => h.completedToday
@@ -53,22 +56,61 @@ function App() {
     );
 
   useEffect(() => {
-    loadHabits();
+    const savedToken = localStorage.getItem("token");
+
+    if (savedToken)
+    {
+      setToken(savedToken);
+      loadHabits(savedToken);
+    } else {
+      loadHabits(null);
+    }
   }, []);
 
-  async function loadHabits() {
-    const res = await fetch(`${BASE_URL}/api/habits`);
+  async function loadHabits(jwt: string | null) {
+    const res = await fetch(`${BASE_URL}/api/habits`, {
+      headers: jwt
+        ? {
+            Authorization: `Bearer ${jwt}`,
+          }
+        : {},
+    });
     const data = await res.json();
     setHabits(data);
+  }
+
+  async function login() {
+    const res = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: loginUsername,
+        passwordHash: loginPassword,
+      }),
+    });
+
+    if (!res.ok) {
+      alert("Login failed");
+      return;
+    }
+    const jwt = await res.text();
+
+    setToken(jwt);
+    localStorage.setItem("token", jwt);
+
+    loadHabits(jwt);
   }
 
   async function addHabit() {
     if (!name.trim()) return;
 
-    await fetch(`${BASE_URL}/api/habits`, {
+    const res = await fetch(`${BASE_URL}/api/habits`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         name,
@@ -78,249 +120,174 @@ function App() {
       }),
     });
 
+    const newHabit = await res.json();
+
+    setHabits((prev) => [...prev, newHabit]);
+
     setName("");
-    loadHabits();
   }
 
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#121212",
-        color: "white",
-        padding: "40px",
-        fontFamily: "Arial",
-      }}
-    >
-      <h1 style={{ marginBottom: "30px" }}>🔥 Habit Tracker</h1>
-      <div
-        style={{
-          display: "flex",
-          gap: "20px",
-          marginBottom: "30px",
-          flexWrap: "wrap",
-        }}
-      >
-        <div
-          style={{
-            backgroundColor: "#1e1e1e",
-            padding: "20px",
-            borderRadius: "12px",
-            minWidth: "180px",
-          }}
-        >
-          <h3>Total Habits</h3>
-          <p style={{ fontSize: "24px" }}>{totalHabits}</p>
-        </div>
+  async function logout() {
+    setToken(null);
+    localStorage.removeItem("token");
+    setHabits([]);
+  }
 
-        <div
-          style={{
-            backgroundColor: "#1e1e1e",
-            padding: "20px",
-            borderRadius: "12px",
-            minWidth: "180px",
-          }}
-        >
-          <h3>Completed Today</h3>
-          <p style={{ fontSize: "24px" }}>{completedToday}</p>
-        </div>
+  if (!token) {
+   return (
+     <div style={{ padding: "40px", background: "#121212", color: "white", minHeight: "100vh" }}>
+       <h1>🔥 Habit Tracker</h1>
 
-        <div
-          style={{
-            backgroundColor: "#1e1e1e",
-            padding: "20px",
-            borderRadius: "12px",
-            minWidth: "180px",
-          }}
-        >
-          <h3>Best Streak</h3>
-          <p style={{ fontSize: "24px" }}>🔥 {bestStreak}</p>
-        </div>
-      </div>
+       <h2>Login</h2>
 
-      <div
-        style={{
-          backgroundColor: "#1e1e1e",
-          padding: "20px",
-          borderRadius: "12px",
-          marginBottom: "30px",
-          width: "100%",
-          maxWidth: "800px",
-          height: "350px",
-        }}
-      >
-        <h2>📊 Habit Streak Analytics</h2>
+       <input
+         placeholder="username"
+         value={loginUsername}
+         onChange={(e) => setLoginUsername(e.target.value)}
+         style={{ marginRight: "10px", padding: "8px" }}
+       />
 
-        <ResponsiveContainer width="100%" height="90%">
-          <BarChart data={chartData}>
-            <XAxis dataKey="name" stroke="#ffffff" />
-            <YAxis stroke="#ffffff" />
-            <Tooltip />
+       <input
+         placeholder="password"
+         type="password"
+         value={loginPassword}
+         onChange={(e) => setLoginPassword(e.target.value)}
+         style={{ marginRight: "10px", padding: "8px" }}
+       />
 
-            <Bar dataKey="streak" fill="#8884d8" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+       <button onClick={login}>Login</button>
+     </div>
+   );
+ }
 
-      <div style={{ marginBottom: "30px" }}>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="New habit..."
-          style={{
-            padding: "10px",
-            borderRadius: "8px",
-            border: "none",
-            marginRight: "10px",
-            width: "250px",
-          }}
-        />
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          style={{
-            padding: "10px",
-            borderRadius: "8px",
-            marginRight: "10px",
-          }}
-        >
-          <option value="General">General</option>
-          <option value="Fitness">Fitness</option>
-          <option value="Study">Study</option>
-          <option value="Health">Health</option>
-          <option value="Productivity">Productivity</option>
-        </select>
+ return (
+   <div style={{ minHeight: "100vh", background: "#121212", color: "white", padding: "40px" }}>
 
-        <button
-          onClick={addHabit}
-          style={{
-            padding: "10px 16px",
-            borderRadius: "8px",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          Add Habit
-        </button>
-      </div>
+     <h1>🔥 Habit Tracker</h1>
 
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          marginBottom: "30px",
-          flexWrap: "wrap",
-        }}
-      >
-        <input
-          placeholder="Search habits..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            padding: "10px",
-            borderRadius: "8px",
-            border: "none",
-          }}
-        />
+     <button onClick={logout} style={{ marginBottom: "20px" }}>
+       Logout
+     </button>
 
-        <select
-          value={filterCategory}
-          onChange={(e) => setFilterCategory(e.target.value)}
-          style={{
-            padding: "10px",
-            borderRadius: "8px",
-          }}
-        >
-          <option value="All">All Categories</option>
-          <option value="General">General</option>
-          <option value="Fitness">Fitness</option>
-          <option value="Study">Study</option>
-          <option value="Health">Health</option>
-          <option value="Productivity">Productivity</option>
-        </select>
 
-        <select
-          value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value)}
-          style={{
-            padding: "10px",
-            borderRadius: "8px",
-          }}
-        >
-          <option value="desc">Highest Streak</option>
-          <option value="asc">Lowest Streak</option>
-        </select>
-      </div>
+     <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
+       <div>Total: {totalHabits}</div>
+       <div>Completed Today: {completedToday}</div>
+       <div>Best Streak: 🔥 {bestStreak}</div>
+     </div>
 
-      <div
-        style={{
-          display: "grid",
-          gap: "20px",
-          maxWidth: "500px",
-        }}
-      >
-        {filteredHabits.map((habit) => (
-          <div
-            key={habit.id}
-            style={{
-              backgroundColor: "#1e1e1e",
-              padding: "20px",
-              borderRadius: "12px",
-            }}
-          >
-            <h2>{habit.name}</h2>
 
-            <p>🔥 Streak: {habit.streak}</p>
-            <p>📂 Category: {habit.category}</p>
+     <div style={{ height: "300px", marginBottom: "30px" }}>
+       <ResponsiveContainer width="100%" height="100%">
+         <BarChart data={chartData}>
+           <XAxis dataKey="name" stroke="#fff" />
+           <YAxis stroke="#fff" />
+           <Tooltip />
+           <Bar dataKey="streak" fill="#8884d8" />
+         </BarChart>
+       </ResponsiveContainer>
+     </div>
 
-            <div style={{ display: "flex", gap: "10px" }}>
-              <button
-                onClick={async () => {
-                  await fetch(
-                    `http://localhost:5016/api/habits/${habit.id}/complete`,
-                    {
-                      method: "PUT",
-                    }
-                  );
 
-                  loadHabits();
-                }}
-                style={{
-                  padding: "8px 12px",
-                  borderRadius: "8px",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                Complete
-              </button>
+     <div style={{ marginBottom: "30px" }}>
+       <input
+         value={name}
+         onChange={(e) => setName(e.target.value)}
+         placeholder="New habit..."
+         style={{ padding: "10px", marginRight: "10px" }}
+       />
 
-              <button
-                onClick={async () => {
-                  await fetch(
-                    `http://localhost:5016/api/habits/${habit.id}`,
-                    {
-                      method: "DELETE",
-                    }
-                  );
+       <select
+         value={category}
+         onChange={(e) => setCategory(e.target.value)}
+         style={{ padding: "10px", marginRight: "10px" }}
+       >
+         <option value="General">General</option>
+         <option value="Fitness">Fitness</option>
+         <option value="Study">Study</option>
+         <option value="Health">Health</option>
+         <option value="Productivity">Productivity</option>
+       </select>
 
-                  loadHabits();
-                }}
-                style={{
-                  padding: "8px 12px",
-                  borderRadius: "8px",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+       <button onClick={addHabit}>Add Habit</button>
+     </div>
+
+
+     <div style={{ display: "flex", gap: "10px", marginBottom: "30px" }}>
+       <input
+         placeholder="Search..."
+         value={search}
+         onChange={(e) => setSearch(e.target.value)}
+       />
+
+       <select
+         value={filterCategory}
+         onChange={(e) => setFilterCategory(e.target.value)}
+       >
+         <option value="All">All</option>
+         <option value="General">General</option>
+         <option value="Fitness">Fitness</option>
+         <option value="Study">Study</option>
+         <option value="Health">Health</option>
+         <option value="Productivity">Productivity</option>
+       </select>
+
+       <select
+         value={sortOrder}
+         onChange={(e) => setSortOrder(e.target.value)}
+       >
+         <option value="desc">Highest Streak</option>
+         <option value="asc">Lowest Streak</option>
+       </select>
+     </div>
+
+
+     <div style={{ display: "grid", gap: "20px", maxWidth: "500px" }}>
+       {filteredHabits.map((habit) => (
+         <div
+           key={habit.id}
+           style={{
+             backgroundColor: "#1e1e1e",
+             padding: "20px",
+             borderRadius: "12px",
+           }}
+         >
+           <h2>{habit.name}</h2>
+           <p>🔥 Streak: {habit.streak}</p>
+           <p>📂 Category: {habit.category}</p>
+
+           <button
+             onClick={async () => {
+               await fetch(`${BASE_URL}/api/habits/${habit.id}/complete`, {
+                 method: "PUT",
+                 headers: { Authorization: `Bearer ${token}` },
+               });
+
+               loadHabits(token);
+             }}
+           >
+             Complete
+           </button>
+
+           <button
+             onClick={async () => {
+               await fetch(`${BASE_URL}/api/habits/${habit.id}`, {
+                 method: "DELETE",
+                 headers: { Authorization: `Bearer ${token}` },
+               });
+
+               loadHabits(token);
+             }}
+           >
+             Delete
+           </button>
+         </div>
+       ))}
+     </div>
+   </div>
+ );
 }
+
+
 
 export default App;

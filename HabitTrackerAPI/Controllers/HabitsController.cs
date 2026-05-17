@@ -2,9 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HabitTrackerAPI.Data;
 using HabitTrackerAPI.Models;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace HabitTrackerAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class HabitsController : ControllerBase
@@ -16,21 +19,37 @@ namespace HabitTrackerAPI.Controllers
             _context = context;
         }
 
+        private string GetUsername()
+        {
+          return User.Identity?.Name!;
+        }
+
+        private int getUserId()
+        {
+          return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        }
+
         // GET: api/habits
         [HttpGet]
         public async Task<ActionResult<List<Habit>>> GetHabits()
         {
-            return await _context.Habits.ToListAsync();
+          var userId = getUserId();
+
+          return await _context.Habits
+            .Where(h => h.UserId == userId)
+            .ToListAsync();
         }
 
         // POST: api/habits
         [HttpPost]
         public async Task<ActionResult<Habit>> CreateHabit(Habit habit)
         {
+            habit.UserId = getUserId();
+
             _context.Habits.Add(habit);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetHabits), new { id = habit.Id }, habit);
+            return Ok(habit);
         }
 		[HttpDelete("{id}")]
 		public async Task<IActionResult> DeleteHabit(int id)
@@ -43,7 +62,7 @@ namespace HabitTrackerAPI.Controllers
 
 			return NoContent();
 		}
-		
+
 		[HttpPut("{id}/complete")]
 		public async Task<IActionResult> CompleteHabit(int id)
 		{

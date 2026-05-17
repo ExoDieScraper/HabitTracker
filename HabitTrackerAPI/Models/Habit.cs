@@ -17,5 +17,7 @@ namespace HabitTrackerAPI.Models
     		public DateTime? LastCompletedDate { get; set; }
 
         public string Category { get; set; } = "General";
+
+        public int UserId { get; set; }
     }
 }
