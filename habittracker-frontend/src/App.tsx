@@ -18,6 +18,9 @@ function App() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [name, setName] = useState("");
   const [category, setCategory] = useState("General");
+  const [search, setSearch] = useState("");
+  const [filterCategory, setFilterCategory] = useState("All");
+  const [sortOrder, setSortOrder] = useState("desc");
   const totalHabits = habits.length;
 
   const completedToday = habits.filter(
@@ -33,6 +36,21 @@ function App() {
     name: habit.name,
     streak: habit.streak,
   }))
+
+  const filteredHabits = habits
+    .filter((habit) =>
+      habit.name.toLowerCase().includes(search.toLowerCase())
+    )
+    .filter((habit) =>
+      filterCategory === "All"
+        ? true
+        : habit.category === filterCategory
+    )
+    .sort((a, b) =>
+      sortOrder === "desc"
+        ? b.streak - a.streak
+        : a.streak - b.streak
+    );
 
   useEffect(() => {
     loadHabits();
@@ -188,12 +206,60 @@ function App() {
 
       <div
         style={{
+          display: "flex",
+          gap: "10px",
+          marginBottom: "30px",
+          flexWrap: "wrap",
+        }}
+      >
+        <input
+          placeholder="Search habits..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{
+            padding: "10px",
+            borderRadius: "8px",
+            border: "none",
+          }}
+        />
+
+        <select
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+          style={{
+            padding: "10px",
+            borderRadius: "8px",
+          }}
+        >
+          <option value="All">All Categories</option>
+          <option value="General">General</option>
+          <option value="Fitness">Fitness</option>
+          <option value="Study">Study</option>
+          <option value="Health">Health</option>
+          <option value="Productivity">Productivity</option>
+        </select>
+
+        <select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
+          style={{
+            padding: "10px",
+            borderRadius: "8px",
+          }}
+        >
+          <option value="desc">Highest Streak</option>
+          <option value="asc">Lowest Streak</option>
+        </select>
+      </div>
+
+      <div
+        style={{
           display: "grid",
           gap: "20px",
           maxWidth: "500px",
         }}
       >
-        {habits.map((habit) => (
+        {filteredHabits.map((habit) => (
           <div
             key={habit.id}
             style={{
