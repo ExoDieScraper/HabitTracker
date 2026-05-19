@@ -19,5 +19,6 @@ namespace HabitTrackerAPI.Models
         public string Category { get; set; } = "General";
 
         public int UserId { get; set; }
+
     }
 }

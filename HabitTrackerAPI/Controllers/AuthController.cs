@@ -25,6 +25,24 @@ public class AuthController : ControllerBase
   [HttpPost("register")]
   public IActionResult Register(User request)
   {
+    if (string.IsNullOrWhiteSpace(request.Username))
+    {
+      return BadRequest("Username is required");
+    }
+    if (string.IsNullOrWhiteSpace(request.PasswordHash))
+    {
+      return BadRequest("Password is required");
+    }
+    if (request.PasswordHash.Length < 8)
+    {
+      return BadRequest("Password must be at least 8 characters long");
+    }
+    var existingUser = _context.Users
+        .FirstOrDefault(u => u.Username == request.Username);
+    if (existingUser != null)
+    {
+      return BadRequest("Username already exists");
+    }
     var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.PasswordHash);
 
     var user = new User

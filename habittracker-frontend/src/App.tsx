@@ -25,6 +25,9 @@ function App() {
   const [token, setToken] = useState<string | null>(null);
   const [loginUsername , setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
 
   const completedToday = habits.filter(
     (h) => h.completedToday
@@ -103,6 +106,38 @@ function App() {
     loadHabits(jwt);
   }
 
+  async function register() {
+    try {
+      setAuthError("");
+      setAuthLoading(true);
+
+      const res = await fetch(`${BASE_URL}/api/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: loginUsername,
+          passwordHash: loginPassword,
+        }),
+      });
+
+      setAuthLoading(false);
+
+      if (!res.ok) {
+        const error = await res.text();
+        setAuthError(error);
+        return;
+      }
+
+      await login();
+    } catch (err) {
+      setAuthError("Registering failed.");
+    } finally {
+      setAuthLoading(false);
+    }
+  }
+
   async function addHabit() {
     if (!name.trim()) return;
 
@@ -138,7 +173,7 @@ function App() {
      <div style={{ padding: "40px", background: "#121212", color: "white", minHeight: "100vh" }}>
        <h1>🔥 Habit Tracker</h1>
 
-       <h2>Login</h2>
+       <h2>{isRegistering ? "Register": "Login"}</h2>
 
        <input
          placeholder="username"
@@ -155,7 +190,36 @@ function App() {
          style={{ marginRight: "10px", padding: "8px" }}
        />
 
-       <button onClick={login}>Login</button>
+       <button
+         onClick={isRegistering ? register : login}
+         disabled={authLoading}
+       >
+         {authLoading
+           ? "Loading..."
+           : isRegistering
+           ? "Register"
+           : "Login"
+         }
+       </button>
+
+       <div style={{ marginTop: "10px" }}>
+         <button
+           onClick={() => {
+             setIsRegistering(!isRegistering);
+             setAuthError("");
+           }}
+         >
+           {isRegistering
+             ? "Already have an account? Login"
+             : "Need an account? Register now"
+           }
+         </button>
+       </div>
+       {authError && (
+         <p style={{ color: "tomato", marginTop: "10px"}}>
+           {authError}
+         </p>
+       )}
      </div>
    );
  }
