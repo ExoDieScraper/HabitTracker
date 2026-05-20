@@ -28,23 +28,77 @@ namespace HabitTrackerAPI.Controllers
         {
           return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         }
+        private int CalculateStreak(List<DateTime> dates)
+        {
+            if (dates.Count == 0) return 0;
+
+            var ordered = dates
+                .Select(d => d.Date)
+                .Distinct()
+                .OrderByDescending(d => d)
+                .ToList();
+
+            int streak = 0;
+            var today = DateTime.UtcNow.Date;
+
+            for (int i = 0; i < ordered.Count; i++)
+            {
+                if (i == 0)
+                {
+                    if (ordered[i] == today || ordered[i] == today.AddDays(-1))
+                        streak++;
+                    else
+                        break;
+                }
+                else
+                {
+                    if (ordered[i] == ordered[i - 1].AddDays(-1))
+                        streak++;
+                    else
+                        break;
+                }
+            }
+
+            return streak;
+        }
 
         // GET: api/habits
         [HttpGet]
         public async Task<ActionResult<List<Habit>>> GetHabits()
         {
-          var userId = getUserId();
+            var userId = getUserId();
 
-          return await _context.Habits
-            .Where(h => h.UserId == userId)
-            .ToListAsync();
+            var habits = await _context.Habits
+                .Include(h => h.Completions)
+                .Where(h => h.UserId == userId)
+                .ToListAsync();
+
+            var result = habits.Select(h => new HabitDto
+            {
+                Id = h.Id,
+                Name = h.Name,
+                Category = h.Category,
+                Streak = CalculateStreak(
+                    h.Completions.Select(c => c.CompletedAt).ToList()
+                ),
+                Completions = h.Completions.Select(c => c.CompletedAt).ToList()
+            });
+
+            return Ok(result);
         }
 
         // POST: api/habits
         [HttpPost]
-        public async Task<ActionResult<Habit>> CreateHabit(Habit habit)
+        public async Task<ActionResult<Habit>> CreateHabit(CreateHabitDto dto)
         {
-            habit.UserId = getUserId();
+            var userId = getUserId();
+
+            var habit = new Habit
+            {
+                Name = dto.Name,
+                Category = dto.Category,
+                UserId = userId
+            };
 
             _context.Habits.Add(habit);
             await _context.SaveChangesAsync();
@@ -54,50 +108,47 @@ namespace HabitTrackerAPI.Controllers
 		[HttpDelete("{id}")]
 		public async Task<IActionResult> DeleteHabit(int id)
 		{
-			var habit = await _context.Habits.FindAsync(id);
-			if (habit == null) return NotFound();
+      var userId = getUserId();
 
-			_context.Habits.Remove(habit);
-			await _context.SaveChangesAsync();
+      var habit = await _context.Habits
+          .FirstOrDefaultAsync(h => h.Id == id && h.UserId == userId);
 
-			return NoContent();
+      if (habit == null) return NotFound();
+
+      _context.Habits.Remove(habit);
+      await _context.SaveChangesAsync();
+
+      return NoContent();
 		}
 
 		[HttpPut("{id}/complete")]
 		public async Task<IActionResult> CompleteHabit(int id)
 		{
-			var habit = await _context.Habits.FindAsync(id);
+      var userId = getUserId();
 
-			if (habit == null)
-			{
-				return NotFound();
-			}
+      var habit = await _context.Habits
+          .FirstOrDefaultAsync(h => h.Id == id && h.UserId == userId);
 
-			var today = DateTime.UtcNow.Date;
+      if (habit == null)
+          return NotFound();
 
-			// Already completed today
-			if (habit.LastCompletedDate?.Date == today)
-			{
-				return BadRequest("Habit already completed today.");
-			}
+      var today = DateTime.UtcNow.Date;
 
-			// If completed yesterday → continue streak
-			if (habit.LastCompletedDate?.Date == today.AddDays(-1))
-			{
-				habit.Streak++;
-			}
-			else
-			{
-				// Missed a day → reset streak
-				habit.Streak = 1;
-			}
+      var alreadyDone = await _context.HabitCompletions
+          .AnyAsync(c => c.HabitId == id && c.CompletedAt.Date == today);
 
-			habit.CompletedToday = true;
-			habit.LastCompletedDate = today;
+      if (alreadyDone)
+          return BadRequest("Already completed today");
 
-			await _context.SaveChangesAsync();
+      _context.HabitCompletions.Add(new HabitCompletion
+      {
+          HabitId = id,
+          CompletedAt = DateTime.UtcNow
+      });
 
-			return Ok(habit);
-		}
+      await _context.SaveChangesAsync();
+
+      return Ok();
+  		}
     }
 }

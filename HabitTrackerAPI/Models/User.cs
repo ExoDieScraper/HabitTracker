@@ -1,11 +1,12 @@
-namespace HabitTrackerAPI.Models;
-
-public class User
+namespace HabitTrackerAPI.Models
 {
-  public int Id {get; set;}
+  public class User
+  {
+    public int Id {get; set;}
 
-  public required string Username { get; set; }
+    public required string Username { get; set; }
 
-  public required string PasswordHash {get; set;}
+    public required string PasswordHash {get; set;}
 
+  }
 }

@@ -1,24 +1,16 @@
+using System.Text.Json.Serialization;
 namespace HabitTrackerAPI.Models
 {
-    public class Habit
+  public class Habit
     {
         public int Id { get; set; }
-
-        public string Name { get; set; } = string.Empty;
-
-        public string? Description { get; set; }
-
-        public int Streak { get; set; } = 0;
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-    		public bool CompletedToday { get; set; }
-
-    		public DateTime? LastCompletedDate { get; set; }
-
-        public string Category { get; set; } = "General";
+        public string Name { get; set; } = "";
+        public string Category { get; set; } = "";
 
         public int UserId { get; set; }
+        [JsonIgnore]
+        public User User { get; set; } = null!;
 
+        public List<HabitCompletion> Completions { get; set; } = new();
     }
 }

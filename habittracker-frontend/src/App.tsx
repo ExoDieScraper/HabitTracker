@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { getHabits } from "./api/habitsApi";
 import {BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,} from "recharts";
+import HabitCard from "./components/habits/HabitCard";
 
 type Habit = {
   id: number;
   name: string;
   description?: string;
   streak: number;
-  createdAt: string;
   category: string;
-  completedToday: boolean;
+  completions: string[];
 };
 
 const BASE_URL = "http://localhost:5016";
@@ -29,8 +29,14 @@ function App() {
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
 
-  const completedToday = habits.filter(
-    (h) => h.completedToday
+  const totalDays = 30;
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const completedToday = habits.filter((h) =>
+    (h.completions ?? []).some((c) =>
+      c.startsWith(today)
+    )
   ).length;
 
   const bestStreak =
@@ -42,6 +48,78 @@ function App() {
     name: habit.name,
     streak: habit.streak,
   }))
+  const last7Days = [...Array(7)].map((_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+
+    return date.toISOString().split("T")[0];
+  }).reverse();
+
+  const heatmapData = last7Days.map(day => {
+    const completed = habits.some(habit =>
+      habit.completions?.some(completion =>
+        completion.startsWith(day)
+      )
+    );
+
+    return {
+      day,
+      completed
+    };
+  });
+
+  const getCompletedCount = (habit: Habit) => {
+    return habit.completions?.length ?? 0;
+  };
+
+  const getCompletionRate = (habit: Habit) => {
+    const daysSinceCreation = Math.max(
+      1,
+      Math.floor(
+        (new Date().getTime() - new Date(habit.completions?.[0] ?? Date.now()).getTime()) /
+        (1000 * 60 * 60 * 24)
+      )
+    );
+
+    return Math.min(100, Math.round((getCompletedCount(habit) / daysSinceCreation) * 100));
+  };
+
+  const getLongestStreak = (habit: Habit) => {
+    if (!habit.completions?.length) return 0;
+
+    const dates = habit.completions
+      .map((c) => new Date(c).toDateString())
+      .sort((a,b) => new Date(a).getTime() - new Date(b).getTime());
+
+    let longest = 1;
+    let current = 1;
+
+    for (let i = 1; i < dates.length; i++) {
+      const prev = new Date(dates[i - 1]);
+      const curr = new Date(dates[i]);
+
+      const diff = (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24);
+
+      if (diff === 1 ) {
+        current++;
+        longest = Math.max(longest, current);
+      } else {
+        current = 1;
+      }
+    }
+
+    return longest;
+  };
+
+  const bestCategory = (() => {
+    const map: Record<string, number> = {};
+
+    habits.forEach((h) => {
+      map[h.category] = (map[h.category] || 0) + getCompletedCount(h);
+    });
+
+    return Object.entries(map).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "N/A";
+  })();
 
   const filteredHabits = habits
     .filter((habit) =>
@@ -71,16 +149,26 @@ function App() {
   }, []);
 
   async function loadHabits(jwt: string | null) {
+  try {
     const res = await fetch(`${BASE_URL}/api/habits`, {
       headers: jwt
-        ? {
-            Authorization: `Bearer ${jwt}`,
-          }
+        ? { Authorization: `Bearer ${jwt}` }
         : {},
     });
+
+    if (!res.ok) {
+      console.warn("Failed to load habits:", await res.text());
+      setHabits([]);
+      return;
+    }
+
     const data = await res.json();
     setHabits(data);
+  } catch (err) {
+    console.error("loadHabits crashed:", err);
+    setHabits([]);
   }
+}
 
   async function login() {
     const res = await fetch(`${BASE_URL}/api/auth/login`, {
@@ -149,17 +237,17 @@ function App() {
       },
       body: JSON.stringify({
         name,
-        description: "",
-        streak: 0,
         category,
       }),
     });
 
-    const newHabit = await res.json();
-
-    setHabits((prev) => [...prev, newHabit]);
+    if (!res.ok) {
+      console.error(await res.text());
+      return;
+    }
 
     setName("");
+    loadHabits(token);
   }
 
   async function logout() {
@@ -238,6 +326,51 @@ function App() {
        <div>Total: {totalHabits}</div>
        <div>Completed Today: {completedToday}</div>
        <div>Best Streak: 🔥 {bestStreak}</div>
+       <div>Best Category: 📊 {bestCategory}</div>
+     </div>
+
+     <div style={{ marginBottom: "30px" }}>
+       <div style={{ display:"flex", marginBottom: "12px"}}>Last 7 Days</div>
+
+       <div
+          style={{
+            display: "flex",
+            gap: "8px",
+          }}
+        >
+          {heatmapData.map((d) => {
+            const label = new Date(d.day).toLocaleDateString("en-US", {
+              weekday: "short",
+            });
+
+            return (
+              <div
+                key={d.day}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                <span style={{ fontSize: "12px", color: "#aaa" }}>
+                  {label}
+                </span>
+
+                <div
+                  title={d.day}
+                  style={{
+                    width: 28,
+                    height: 28,
+                    backgroundColor: d.completed ? "#22c55e" : "#333",
+                    borderRadius: "6px",
+                    border: "1px solid #444",
+                  }}
+                />
+              </div>
+            );
+          })}
+        </div>
      </div>
 
 
@@ -308,44 +441,29 @@ function App() {
 
      <div style={{ display: "grid", gap: "20px", maxWidth: "500px" }}>
        {filteredHabits.map((habit) => (
-         <div
+         <HabitCard
            key={habit.id}
-           style={{
-             backgroundColor: "#1e1e1e",
-             padding: "20px",
-             borderRadius: "12px",
+           habit={habit}
+           onComplete={async (id) => {
+             await fetch(`${BASE_URL}/api/habits/${id}/complete`, {
+               method: "PUT",
+               headers: { Authorization: `Bearer ${token}` },
+             });
+
+             loadHabits(token);
            }}
-         >
-           <h2>{habit.name}</h2>
-           <p>🔥 Streak: {habit.streak}</p>
-           <p>📂 Category: {habit.category}</p>
+           onDelete={async (id) => {
+             await fetch(`${BASE_URL}/api/habits/${id}`, {
+               method: "DELETE",
+               headers: { Authorization: `Bearer ${token}` },
+             });
 
-           <button
-             onClick={async () => {
-               await fetch(`${BASE_URL}/api/habits/${habit.id}/complete`, {
-                 method: "PUT",
-                 headers: { Authorization: `Bearer ${token}` },
-               });
-
-               loadHabits(token);
-             }}
-           >
-             Complete
-           </button>
-
-           <button
-             onClick={async () => {
-               await fetch(`${BASE_URL}/api/habits/${habit.id}`, {
-                 method: "DELETE",
-                 headers: { Authorization: `Bearer ${token}` },
-               });
-
-               loadHabits(token);
-             }}
-           >
-             Delete
-           </button>
-         </div>
+             loadHabits(token);
+           }}
+           getCompletedCount={getCompletedCount}
+           getCompletionRate={getCompletionRate}
+           getLongestStreak={getLongestStreak}
+         />
        ))}
      </div>
    </div>
