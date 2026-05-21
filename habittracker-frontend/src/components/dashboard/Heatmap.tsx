@@ -7,17 +7,13 @@ type Props = {
 
 export default function Heatmap({ heatmapData }: Props) {
   return (
-    <div style={{ marginBottom: "30px" }}>
-      <div style={{ display: "flex", marginBottom: "12px" }}>
-        Last 7 Days
-      </div>
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 mb-6 flex flex-col items-center">
 
-      <div
-        style={{
-          display: "flex",
-          gap: "8px",
-        }}
-      >
+      <p className="text-sm text-zinc-400 mb-3">
+        Last 7 Days
+      </p>
+
+      <div className="flex gap-3">
         {heatmapData.map((d) => {
           const label = new Date(d.day).toLocaleDateString("en-US", {
             weekday: "short",
@@ -26,26 +22,19 @@ export default function Heatmap({ heatmapData }: Props) {
           return (
             <div
               key={d.day}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "6px",
-              }}
+              className="flex flex-col items-center gap-2"
             >
-              <span style={{ fontSize: "12px", color: "#aaa" }}>
+              <span className="text-xs text-zinc-500">
                 {label}
               </span>
 
               <div
                 title={d.day}
-                style={{
-                  width: 28,
-                  height: 28,
-                  backgroundColor: d.completed ? "#22c55e" : "#333",
-                  borderRadius: "6px",
-                  border: "1px solid #444",
-                }}
+                className={`
+                  w-7 h-7 rounded-md border border-zinc-700
+                  transition
+                  ${d.completed ? "bg-green-500" : "bg-zinc-800"}
+                `}
               />
             </div>
           );

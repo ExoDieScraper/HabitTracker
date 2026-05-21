@@ -6,14 +6,60 @@ A simple full-stack habit tracking application built with **React (TypeScript)**
 
 ## 🚀 Features
 
-- Create habits
-- View all habits
-- Persistent storage with SQLite
-- REST API built with ASP.NET Core
-- Frontend built with React + TypeScript
-- Full client-server integration
+### 🔐 Authentication System
+- User registration and login
+- JWT-based authentication
+- Persistent login using localStorage
+- Protected API routes
 
 ---
+
+### 📊 Habit Tracking
+- Create habits with categories
+- Mark habits as complete
+- Delete habits
+- Track streaks per habit
+- Filter and sort habits (streak-based, category-based)
+
+---
+
+### 📈 Analytics Dashboard
+- Total habits counter
+- Completed habits today
+- Best streak tracking
+- Best performing category detection
+- Completion rate per habit
+- Longest streak calculation
+
+---
+
+### 📉 Data Visualization
+- Habit streak bar chart (Recharts)
+- 7-day activity heatmap
+- Real-time UI updates after actions
+
+---
+
+### 🎨 UI / UX Improvements
+- Dark mode dashboard UI (Zinc theme)
+- Tailwind CSS component styling system
+- Card-based layout design
+- Responsive layout (mobile + desktop)
+- Hover states and smooth transitions
+- Centered dashboard container system
+
+---
+
+### 🔔 User Experience Enhancements
+- Toast notifications using `react-hot-toast`:
+  - Habit completed 🔥
+  - Habit deleted 🗑
+  - Login success 👋
+  - Registration success 🎉
+- Instant UI updates after API actions
+
+---
+
 
 ## 🧱 Tech Stack
 
@@ -21,28 +67,41 @@ A simple full-stack habit tracking application built with **React (TypeScript)**
 - React
 - TypeScript
 - Vite
+- Tailwind CSS
 - Fetch API
+- Recharts
+- React Hot Toast
 
 ### Backend
 - ASP.NET Core Web API (.NET 8)
 - Entity Framework Core
 - SQLite
+- JWT Authentication
 
 ---
 
 ## 📸 Screenshots
 
-*(Add screenshots here later)*
-
-Example:
-- Main UI showing habit list
-- Swagger API testing page
+*TODO :(Add screenshots here later)*
+Add screenshots of:
+- Login page
+- Dashboard overview
+- Habit cards
+- Heatmap + chart section
 
 ---
 
 ## ⚙️ Project Structure
 HabitTracker/
 ├── habittracker-frontend/ # React frontend
+│ ├── src/components/
+│ │ ├── habits/
+│ │ ├── dashboard/
+│ │ └── auth/
+│ ├── src/api/
+│ ├── src/types/
+│ └── App.tsx
+│
 └── HabitTrackerAPI/ # .NET backend
 ---
 
@@ -61,7 +120,7 @@ dotnet restore
 dotnet run```
 Backend runs at:
 ```http://localhost:5016 (or similar)```
-Check if this matches in habittracker-frontend/src/api/habitsApi.ts otherwise replace the numbers after the : with the ones displayed on the terminal when running the backend.
+Check if this matches in habittracker-frontend/src/api/habitsApi.ts and the BASE_URL in App.tsx otherwise replace the numbers after the : with the ones displayed on the terminal when running the backend.
 
 ### 3. Run Frontend (React)
 ```bash
@@ -72,9 +131,15 @@ Frontend runs at:
 ```https://localhost:5173```
 
 ### API Endpoints
+Authentication
+- POST /api/auth/register
+- POST /api/auth/login
+
 Habits
-- GET /api/habits → Get all habits
-- POST /api/habits → Create a new habit
+- GET /api/habits -> Get all habits
+- POST /api/habits -> Create a new habit
+- PUT /api/habits/{id}/complete -> Complete a habit
+- DELETE /api/habits/{id} -> Delete a habit
 
 ### What I learned
 - Building a REST API with ASP.NET Core
@@ -82,6 +147,13 @@ Habits
 - Using Entity Framework Core with SQLite
 - Handling CORS in full-stack apps
 - Managing state in React
+- Full-stack architecture (React + .NET API)
+- JWT authentication flow
+- State management in React
+- Component-based UI design
+- Data Visualization with Recharts
+- Building production-style UI with Tailwind CSS
+- Designing user-focused dashboard UX
 
 ### Author
 Built by Wahab as a full-stack project.

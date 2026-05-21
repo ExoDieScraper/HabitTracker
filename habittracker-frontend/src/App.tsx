@@ -6,6 +6,7 @@ import DashboardStats from "./components/dashboard/DashboardStats";
 import HabitChart from "./components/dashboard/HabitChart";
 import HabitForm from "./components/habits/HabitForm";
 import type { Habit } from "./types/habit";
+import toast, { Toaster } from "react-hot-toast";
 
 const BASE_URL = "http://localhost:5016";
 
@@ -68,15 +69,24 @@ function App() {
   };
 
   const getCompletionRate = (habit: Habit) => {
-    const daysSinceCreation = Math.max(
-      1,
-      Math.floor(
-        (new Date().getTime() - new Date(habit.completions?.[0] ?? Date.now()).getTime()) /
-        (1000 * 60 * 60 * 24)
+    const last7Days = [...Array(7)].map((_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+
+      return date.toISOString().split("T")[0];
+    });
+
+    const uniqueDays = new Set(
+      (habit.completions ?? []).map((c) =>
+        new Date(c).toISOString().split("T")[0]
       )
     );
 
-    return Math.min(100, Math.round((getCompletedCount(habit) / daysSinceCreation) * 100));
+    const completedInWindow = last7Days.filter((day) =>
+      uniqueDays.has(day)
+    ).length;
+
+    return Math.round((completedInWindow / 7)* 100);
   };
 
   const getLongestStreak = (habit: Habit) => {
@@ -186,6 +196,7 @@ function App() {
     setToken(jwt);
     localStorage.setItem("token", jwt);
 
+    toast.success("Welcome Back!");
     loadHabits(jwt);
   }
 
@@ -252,150 +263,214 @@ function App() {
   }
 
   if (!token) {
-   return (
-     <div style={{ padding: "40px", background: "#121212", color: "white", minHeight: "100vh" }}>
-       <h1>🔥 Habit Tracker</h1>
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white px-4 page-fade">
 
-       <h2>{isRegistering ? "Register": "Login"}</h2>
+        <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-lg space-y-6">
 
-       <input
-         placeholder="username"
-         value={loginUsername}
-         onChange={(e) => setLoginUsername(e.target.value)}
-         style={{ marginRight: "10px", padding: "8px" }}
-       />
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl font-bold">
+              🔥 Habit Tracker
+            </h1>
 
-       <input
-         placeholder="password"
-         type="password"
-         value={loginPassword}
-         onChange={(e) => setLoginPassword(e.target.value)}
-         style={{ marginRight: "10px", padding: "8px" }}
-       />
+            <p className="text-sm text-zinc-400">
+              {isRegistering ? "Create your account" : "Welcome back"}
+            </p>
+          </div>
 
-       <button
-         onClick={isRegistering ? register : login}
-         disabled={authLoading}
-       >
-         {authLoading
-           ? "Loading..."
-           : isRegistering
-           ? "Register"
-           : "Login"
-         }
-       </button>
+          <div className="space-y-3">
+            <input
+              className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:outline-none focus:border-green-500"
+              placeholder="Username"
+              value={loginUsername}
+              onChange={(e) => setLoginUsername(e.target.value)}
+            />
 
-       <div style={{ marginTop: "10px" }}>
-         <button
-           onClick={() => {
-             setIsRegistering(!isRegistering);
-             setAuthError("");
-           }}
-         >
-           {isRegistering
-             ? "Already have an account? Login"
-             : "Need an account? Register now"
-           }
-         </button>
-       </div>
-       {authError && (
-         <p style={{ color: "tomato", marginTop: "10px"}}>
-           {authError}
-         </p>
-       )}
-     </div>
-   );
- }
+            <input
+              className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:outline-none focus:border-green-500"
+              placeholder="Password"
+              type="password"
+              value={loginPassword}
+              onChange={(e) => setLoginPassword(e.target.value)}
+            />
+          </div>
+
+          {authError && (
+            <p className="text-sm text-red-400">
+              {authError}
+            </p>
+          )}
+
+          <button
+            onClick={isRegistering ? register : login}
+            disabled={authLoading}
+            className="w-full py-2 rounded-lg bg-green-600 hover:bg-green-500 transition text-white font-medium"
+          >
+            {authLoading
+              ? "Loading..."
+              : isRegistering
+              ? "Register"
+              : "Login"
+            }
+          </button>
+
+          <button
+            onClick={() => {
+              setIsRegistering(!isRegistering);
+              setAuthError("");
+            }}
+            className="w-full text-sm text-zinc-400 hover:text-white transition"
+          >
+            {isRegistering
+              ? "Already have an account? Login"
+              : "Need an account? Register"
+            }
+          </button>
+
+        </div>
+      </div>
+    );
+  }
 
  return (
-   <div style={{ minHeight: "100vh", background: "#121212", color: "white", padding: "40px" }}>
+    <div className="min-h-screen bg-zinc-950 text-white page-fade">
 
-     <h1>🔥 Habit Tracker</h1>
+      <Toaster position="top-right" />
 
-     <button onClick={logout} style={{ marginBottom: "20px" }}>
-       Logout
-     </button>
+      <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
 
-     <DashboardStats
-       totalHabits={totalHabits}
-       completedToday={completedToday}
-       bestStreak={bestStreak}
-       bestCategory={bestCategory}
-     />
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">
+            🔥 Habit Tracker
+          </h1>
 
-     <Heatmap heatmapData={heatmapData} />
+          <button
+            onClick={logout}
+            className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition text-sm"
+          >
+            Logout
+          </button>
+        </div>
 
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+          <DashboardStats
+            totalHabits={totalHabits}
+            completedToday={completedToday}
+            bestStreak={bestStreak}
+            bestCategory={bestCategory}
+          />
+        </div>
 
-     <HabitChart chartData={chartData} />
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+          <Heatmap heatmapData={heatmapData} />
+        </div>
 
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+          <HabitChart chartData={chartData} />
+        </div>
 
-     <HabitForm
-       name={name}
-       category={category}
-       setName={setName}
-       setCategory={setCategory}
-       addHabit={addHabit}
-     />
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+          <HabitForm
+            name={name}
+            category={category}
+            setName={setName}
+            setCategory={setCategory}
+            addHabit={addHabit}
+          />
+        </div>
 
+        <div className="flex flex-col md:flex-row gap-3 bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <input
+            className="flex-1 px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
 
-     <div style={{ display: "flex", gap: "10px", marginBottom: "30px" }}>
-       <input
-         placeholder="Search..."
-         value={search}
-         onChange={(e) => setSearch(e.target.value)}
-       />
+          <select
+            className="px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700"
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+          >
+            <option value="All">All</option>
+            <option value="General">General</option>
+            <option value="Fitness">Fitness</option>
+            <option value="Study">Study</option>
+            <option value="Health">Health</option>
+            <option value="Productivity">Productivity</option>
+          </select>
 
-       <select
-         value={filterCategory}
-         onChange={(e) => setFilterCategory(e.target.value)}
-       >
-         <option value="All">All</option>
-         <option value="General">General</option>
-         <option value="Fitness">Fitness</option>
-         <option value="Study">Study</option>
-         <option value="Health">Health</option>
-         <option value="Productivity">Productivity</option>
-       </select>
+          <select
+            className="px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700"
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+          >
+            <option value="desc">Highest Streak</option>
+            <option value="asc">Lowest Streak</option>
+          </select>
+        </div>
 
-       <select
-         value={sortOrder}
-         onChange={(e) => setSortOrder(e.target.value)}
-       >
-         <option value="desc">Highest Streak</option>
-         <option value="asc">Lowest Streak</option>
-       </select>
-     </div>
+        <div className="grid gap-4 max-w-lg mx-auto w-full">
+          {filteredHabits.length === 0 ? (
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center shadow-sm">
 
+              <div className="text-4xl mb-3">🌱</div>
 
-     <div style={{ display: "grid", gap: "20px", maxWidth: "500px" }}>
-       {filteredHabits.map((habit) => (
-         <HabitCard
-           key={habit.id}
-           habit={habit}
-           onComplete={async (id) => {
-             await fetch(`${BASE_URL}/api/habits/${id}/complete`, {
-               method: "PUT",
-               headers: { Authorization: `Bearer ${token}` },
-             });
+              <h2 className="text-lg font-semibold text-white mb-2">
+                No habits yet
+              </h2>
 
-             loadHabits(token);
-           }}
-           onDelete={async (id) => {
-             await fetch(`${BASE_URL}/api/habits/${id}`, {
-               method: "DELETE",
-               headers: { Authorization: `Bearer ${token}` },
-             });
+              <p className="text-sm text-zinc-400 mb-6">
+                Start building consistency — add your first habit to begin tracking your progress.
+              </p>
 
-             loadHabits(token);
-           }}
-           getCompletedCount={getCompletedCount}
-           getCompletionRate={getCompletionRate}
-           getLongestStreak={getLongestStreak}
-         />
-       ))}
-     </div>
-   </div>
- );
+              <button
+                onClick={() => {
+                  const input = document.querySelector("input") as HTMLInputElement;
+                  input?.focus();
+                }}
+                className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-sm rounded-lg transition"
+              >
+                Create your first habit
+              </button>
+
+            </div>
+          ) : (
+            <div className="grid gap-4 max-w-[500px]">
+              {filteredHabits.map((habit) => (
+                <HabitCard
+                  key={habit.id}
+                  habit={habit}
+                  onComplete={async (id) => {
+                    await fetch(`${BASE_URL}/api/habits/${id}/complete`, {
+                      method: "PUT",
+                      headers: { Authorization: `Bearer ${token}` },
+                    });
+
+                    toast.success("Habit completed 🔥");
+                    loadHabits(token);
+                  }}
+                  onDelete={async (id) => {
+                    await fetch(`${BASE_URL}/api/habits/${id}`, {
+                      method: "DELETE",
+                      headers: { Authorization: `Bearer ${token}` },
+                    });
+
+                    toast.success("Habit deleted");
+                    loadHabits(token);
+                  }}
+                  getCompletedCount={getCompletedCount}
+                  getCompletionRate={getCompletionRate}
+                  getLongestStreak={getLongestStreak}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+      </div>
+    </div>
+  );
 }
 
 

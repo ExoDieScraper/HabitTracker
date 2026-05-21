@@ -1,8 +1,8 @@
 type Props = {
   name: string;
   category: string;
-  setName: (value: string) => void;
-  setCategory: (value: string) => void;
+  setName: (v: string) => void;
+  setCategory: (v: string) => void;
   addHabit: () => void;
 };
 
@@ -14,18 +14,19 @@ export default function HabitForm({
   addHabit,
 }: Props) {
   return (
-    <div style={{ marginBottom: "30px" }}>
+    <div className="flex flex-col md:flex-row gap-3 items-stretch">
+
       <input
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="New habit..."
-        style={{ padding: "10px", marginRight: "10px" }}
+        className="flex-1 px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700"
       />
 
       <select
         value={category}
         onChange={(e) => setCategory(e.target.value)}
-        style={{ padding: "10px", marginRight: "10px" }}
+        className="px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700"
       >
         <option value="General">General</option>
         <option value="Fitness">Fitness</option>
@@ -34,7 +35,13 @@ export default function HabitForm({
         <option value="Productivity">Productivity</option>
       </select>
 
-      <button onClick={addHabit}>Add Habit</button>
+      <button
+        onClick={addHabit}
+        className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 transition font-medium"
+      >
+        Add Habit
+      </button>
+
     </div>
   );
 }
