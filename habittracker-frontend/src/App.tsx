@@ -1,16 +1,11 @@
 import { useEffect, useState } from "react";
 import { getHabits } from "./api/habitsApi";
-import {BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,} from "recharts";
 import HabitCard from "./components/habits/HabitCard";
-
-type Habit = {
-  id: number;
-  name: string;
-  description?: string;
-  streak: number;
-  category: string;
-  completions: string[];
-};
+import Heatmap from "./components/dashboard/Heatmap";
+import DashboardStats from "./components/dashboard/DashboardStats";
+import HabitChart from "./components/dashboard/HabitChart";
+import HabitForm from "./components/habits/HabitForm";
+import type { Habit } from "./types/habit";
 
 const BASE_URL = "http://localhost:5016";
 
@@ -321,93 +316,26 @@ function App() {
        Logout
      </button>
 
+     <DashboardStats
+       totalHabits={totalHabits}
+       completedToday={completedToday}
+       bestStreak={bestStreak}
+       bestCategory={bestCategory}
+     />
 
-     <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
-       <div>Total: {totalHabits}</div>
-       <div>Completed Today: {completedToday}</div>
-       <div>Best Streak: 🔥 {bestStreak}</div>
-       <div>Best Category: 📊 {bestCategory}</div>
-     </div>
-
-     <div style={{ marginBottom: "30px" }}>
-       <div style={{ display:"flex", marginBottom: "12px"}}>Last 7 Days</div>
-
-       <div
-          style={{
-            display: "flex",
-            gap: "8px",
-          }}
-        >
-          {heatmapData.map((d) => {
-            const label = new Date(d.day).toLocaleDateString("en-US", {
-              weekday: "short",
-            });
-
-            return (
-              <div
-                key={d.day}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: "6px",
-                }}
-              >
-                <span style={{ fontSize: "12px", color: "#aaa" }}>
-                  {label}
-                </span>
-
-                <div
-                  title={d.day}
-                  style={{
-                    width: 28,
-                    height: 28,
-                    backgroundColor: d.completed ? "#22c55e" : "#333",
-                    borderRadius: "6px",
-                    border: "1px solid #444",
-                  }}
-                />
-              </div>
-            );
-          })}
-        </div>
-     </div>
+     <Heatmap heatmapData={heatmapData} />
 
 
-     <div style={{ height: "300px", marginBottom: "30px" }}>
-       <ResponsiveContainer width="100%" height="100%">
-         <BarChart data={chartData}>
-           <XAxis dataKey="name" stroke="#fff" />
-           <YAxis stroke="#fff" />
-           <Tooltip />
-           <Bar dataKey="streak" fill="#8884d8" />
-         </BarChart>
-       </ResponsiveContainer>
-     </div>
+     <HabitChart chartData={chartData} />
 
 
-     <div style={{ marginBottom: "30px" }}>
-       <input
-         value={name}
-         onChange={(e) => setName(e.target.value)}
-         placeholder="New habit..."
-         style={{ padding: "10px", marginRight: "10px" }}
-       />
-
-       <select
-         value={category}
-         onChange={(e) => setCategory(e.target.value)}
-         style={{ padding: "10px", marginRight: "10px" }}
-       >
-         <option value="General">General</option>
-         <option value="Fitness">Fitness</option>
-         <option value="Study">Study</option>
-         <option value="Health">Health</option>
-         <option value="Productivity">Productivity</option>
-       </select>
-
-       <button onClick={addHabit}>Add Habit</button>
-     </div>
+     <HabitForm
+       name={name}
+       category={category}
+       setName={setName}
+       setCategory={setCategory}
+       addHabit={addHabit}
+     />
 
 
      <div style={{ display: "flex", gap: "10px", marginBottom: "30px" }}>
