@@ -85,17 +85,21 @@ A simple full-stack habit tracking application built with **React (TypeScript)**
 ### Login Page
 ![Login Page](./screenshots/login.jpg)
 ![Register Page](./screenshots/register.jpg)
+![Login Page Mobile](./screenshots/mobiledashboard1.png)
 
 ### Dashboard
 ![Dashboard](./screenshots/Dashboard_1.jpg)
 ![Dashboard2](./screenshots/Dashboard_2.jpg)
+![Dashboard Mobile](./screenshots/mobiledashboard1.png)
+![Dashboard Mobile 2](./screenshots/mobiledashboard2.png)
 
 
 ---
 
 ## 🌐 Deployment
 
-Deployment to a Linux VPS is planned.
+Deployed to http://87.106.201.20
+For a live demo.
 
 ---
 
@@ -126,7 +130,8 @@ cd habit-tracker
 ```bash
 cd HabitTrackerAPI
 dotnet restore
-dotnet run```
+dotnet run
+```
 Backend runs at:
 ```http://localhost:5016 (or similar)```
 Check if this matches in habittracker-frontend/src/api/habitsApi.ts and the BASE_URL in App.tsx otherwise replace the numbers after the : with the ones displayed on the terminal when running the backend.
@@ -135,7 +140,8 @@ Check if this matches in habittracker-frontend/src/api/habitsApi.ts and the BASE
 ```bash
 cd habittracker-frontend
 npm install
-npm run dev```
+npm run dev
+```
 Frontend runs at:
 ```https://localhost:5173```
 
@@ -153,7 +159,7 @@ Habits
 
 ## ⭐ Interview Explanation
 
-This project is a full-stack habit tracking application designed to practice production-style application architecture using React and ASP.NET Core.
+This project is a full-stack habit tracking application demonstrating REST API design, authentication, and frontend-backend integration using React and ASP.NET Core.
 
 The frontend handles:
 - authentication state
@@ -185,6 +191,13 @@ The application focuses on:
 - Data Visualization with Recharts
 - Building production-style UI with Tailwind CSS
 - Designing user-focused dashboard UX
+
+## ⚠️ Known Limitations
+
+- No password reset system
+- No refresh token rotation
+- SQLite used instead of production database
+- No containerization (Docker)
 
 ### Author
 Built by Wahab as a full-stack project.
