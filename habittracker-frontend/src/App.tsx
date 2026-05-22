@@ -8,7 +8,7 @@ import HabitForm from "./components/habits/HabitForm";
 import type { Habit } from "./types/habit";
 import toast, { Toaster } from "react-hot-toast";
 
-const BASE_URL = "http://localhost:5016";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 function App() {
   const [habits, setHabits] = useState<Habit[]>([]);

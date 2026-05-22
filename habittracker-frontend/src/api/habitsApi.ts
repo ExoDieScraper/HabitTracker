@@ -6,7 +6,9 @@ export type Habit = {
   createdAt: string;
 };
 
+const BASE_URL = import.meta.env.VITE_API_URL
+
 export async function getHabits(): Promise<Habit[]> {
-  const response = await fetch("http://localhost:5016/api/habits");
+  const response = await fetch(`{BASE_URL}/api/habits`);
   return await response.json();
 }

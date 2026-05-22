@@ -82,12 +82,20 @@ A simple full-stack habit tracking application built with **React (TypeScript)**
 
 ## 📸 Screenshots
 
-*TODO :(Add screenshots here later)*
-Add screenshots of:
-- Login page
-- Dashboard overview
-- Habit cards
-- Heatmap + chart section
+### Login Page
+![Login Page](./screenshots/login.jpg)
+![Register Page](./screenshots/register.jpg)
+
+### Dashboard
+![Dashboard](./screenshots/Dashboard_1.jpg)
+![Dashboard2](./screenshots/Dashboard_2.jpg)
+
+
+---
+
+## 🌐 Deployment
+
+Deployment to a Linux VPS is planned.
 
 ---
 
@@ -111,7 +119,8 @@ HabitTracker/
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/habit-tracker.git
-cd habit-tracker```
+cd habit-tracker
+```
 
 ### 2. Run Backend (.NET API)
 ```bash
@@ -124,7 +133,7 @@ Check if this matches in habittracker-frontend/src/api/habitsApi.ts and the BASE
 
 ### 3. Run Frontend (React)
 ```bash
-cd habbittracker-frontend
+cd habittracker-frontend
 npm install
 npm run dev```
 Frontend runs at:
@@ -140,6 +149,28 @@ Habits
 - POST /api/habits -> Create a new habit
 - PUT /api/habits/{id}/complete -> Complete a habit
 - DELETE /api/habits/{id} -> Delete a habit
+
+
+## ⭐ Interview Explanation
+
+This project is a full-stack habit tracking application designed to practice production-style application architecture using React and ASP.NET Core.
+
+The frontend handles:
+- authentication state
+- dashboard rendering
+- filtering/sorting
+- charts and analytics
+- responsive UI design
+
+The backend exposes a REST API with JWT authentication and persists user habit data using SQLite and Entity Framework Core.
+
+The application focuses on:
+- full client/server integration
+- clean component structure
+- user-focused dashboard UX
+- real-time UI updates
+- data visualization
+- authenticated API communication
 
 ### What I learned
 - Building a REST API with ASP.NET Core
